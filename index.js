@@ -1,7 +1,14 @@
 const app = require("express")();
 const routes = require("./routes");
-require("dotenv").config();
+const RedisConnection = require("./classes/RedisConnection");
+const redisClient = new RedisConnection().redisClient;
 
-
-app.use("/", routes);
+app.use(
+  "/",
+  (req, res, next) => {
+    req.redisClient = redisClient;
+    next();
+  },
+  routes
+);
 module.exports = app;
