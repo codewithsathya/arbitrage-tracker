@@ -15,5 +15,9 @@
   "bugs": {
     "url": "https://github.com/codewithsathya/arbitrage-tracker/issues"
   },
-  "homepage": "https://github.com/codewithsathya/arbitrage-tracker#readme"
+  "homepage": "https://github.com/codewithsathya/arbitrage-tracker#readme",
+  "dependencies": {
+    "axios": "^0.26.0",
+    "express": "^4.17.3"
+  }
 }
