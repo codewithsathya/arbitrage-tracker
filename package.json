@@ -1,0 +1,19 @@
+{
+  "name": "arbitrage-tracker",
+  "version": "1.0.0",
+  "description": "Arbitrage Tracker tracks the arbitrage trades that are currently present among exchanges.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/codewithsathya/arbitrage-tracker.git"
+  },
+  "author": "S Sathiya Seelan",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/codewithsathya/arbitrage-tracker/issues"
+  },
+  "homepage": "https://github.com/codewithsathya/arbitrage-tracker#readme"
+}
