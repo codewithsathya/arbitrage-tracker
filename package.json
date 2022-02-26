@@ -18,6 +18,8 @@
   "homepage": "https://github.com/codewithsathya/arbitrage-tracker#readme",
   "dependencies": {
     "axios": "^0.26.0",
-    "express": "^4.17.3"
+    "dotenv": "^16.0.0",
+    "express": "^4.17.3",
+    "redis": "^4.0.4"
   }
 }
