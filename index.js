@@ -1,7 +1,7 @@
 const app = require("express")();
 const routes = require("./routes");
-const RedisConnection = require("./classes/RedisConnection");
-const redisClient = new RedisConnection().redisClient;
+const RedisConnection = require("./db/RedisConnection");
+let redisClient = new RedisConnection().redisClient;
 
 app.use(
   "/",
