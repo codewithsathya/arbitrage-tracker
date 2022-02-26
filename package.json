@@ -4,7 +4,7 @@
   "description": "Arbitrage Tracker tracks the arbitrage trades that are currently present among exchanges.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node bin/www"
   },
   "repository": {
     "type": "git",
