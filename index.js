@@ -1,7 +1,27 @@
 const app = require("express")();
 const routes = require("./routes");
 const RedisConnection = require("./db/RedisConnection");
-let redisClient = new RedisConnection().redisClient;
+// const redisClient = new RedisConnection().redisClient;
+const Binance = require("./classes/Binance");
+const Wazirx = require("./classes/Wazirx");
+
+const accessKey = process.env.WAZIRX_ACCESS_KEY;
+const secretKey = process.env.WAZIRX_SECRET_KEY;
+const authKey = process.env.WAZIRX_AUTH_KEY;
+
+const wazirx = new Wazirx(accessKey, secretKey, authKey);
+const binance = new Binance();
+
+async function initialize(){
+  console.time("wazirx");
+  await wazirx.buildInfo();
+  console.timeEnd("wazirx");
+  console.time("binance");
+  await binance.buildInfo();
+  console.timeEnd("binance");
+}
+
+initialize();
 
 app.use(
   "/",
