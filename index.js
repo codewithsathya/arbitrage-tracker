@@ -12,9 +12,6 @@ const authKey = process.env.WAZIRX_AUTH_KEY;
 const wazirx = new Wazirx(accessKey, secretKey, authKey);
 const binance = new Binance();
 
-app.use("/", (req, res) => {
-  res.send("Hello world");
-})
 
 async function initialize(){
   console.time("wazirx");
@@ -30,9 +27,10 @@ initialize();
 app.use(
   "/",
   (req, res, next) => {
-    req.redisClient = redisClient;
+    // req.redisClient = redisClient;
     next();
   },
   routes
 );
+
 module.exports = app;
