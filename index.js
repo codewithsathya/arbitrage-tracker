@@ -12,6 +12,10 @@ const authKey = process.env.WAZIRX_AUTH_KEY;
 const wazirx = new Wazirx(accessKey, secretKey, authKey);
 const binance = new Binance();
 
+app.use("/", (req, res) => {
+  res.send("Hello world");
+})
+
 async function initialize(){
   console.time("wazirx");
   await wazirx.buildInfo();
