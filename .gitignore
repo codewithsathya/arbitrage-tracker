@@ -2,3 +2,4 @@
 .env
 *rdb
 *pem
+.DS_Store
