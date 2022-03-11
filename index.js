@@ -12,8 +12,7 @@ const authKey = process.env.WAZIRX_AUTH_KEY;
 const wazirx = new Wazirx(accessKey, secretKey, authKey);
 const binance = new Binance();
 
-
-async function initialize(){
+async function initialize() {
   console.time("wazirx");
   await wazirx.buildInfo();
   console.timeEnd("wazirx");
@@ -23,6 +22,15 @@ async function initialize(){
 }
 
 initialize();
+
+app.enable("trust proxy");
+
+app.use(function (request, response, next) {
+  if (!request.secure) {
+    return response.redirect("https://" + request.headers.host + request.url);
+  }
+  next();
+});
 
 app.use(
   "/",
