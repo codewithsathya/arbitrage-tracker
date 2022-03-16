@@ -1,47 +1,23 @@
 const app = require("express")();
 const routes = require("./routes");
-const RedisConnection = require("./db/RedisConnection");
-const redisClient = new RedisConnection().redisClient;
-const Binance = require("./classes/Binance");
-const Wazirx = require("./classes/Wazirx");
-const ArbitrageTracker = require("./classes/ArbitrageTracker");
+const { redisMiddleware, httpsRedirect } = require("./middlewares");
+const { redisClient } = new (require("./db/RedisConnection"))();
 
-const accessKey = process.env.WAZIRX_ACCESS_KEY;
-const secretKey = process.env.WAZIRX_SECRET_KEY;
-const authKey = process.env.WAZIRX_AUTH_KEY;
+const wazirx = new (require("./classes/Wazirx"))(process.env.WAZIRX_ACCESS_KEY, process.env.WAZIRX_SECRET_KEY, process.env.WAZIRX_AUTH_KEY);
+const binance = new (require("./classes/Binance"))();
+const arbitrageTracker = new (require("./classes/ArbitrageTracker"))(wazirx, binance);
 
-const wazirx = new Wazirx(accessKey, secretKey, authKey);
-const binance = new Binance();
-const arbitrageTracker = new ArbitrageTracker(wazirx, binance);
+app.enable("trust proxy");
+app.use(httpsRedirect);
+app.use("/", (req, res, next) => redisMiddleware(req, res, next, redisClient), routes);
 
 async function initialize() {
   await wazirx.buildInfo();
   await binance.buildInfo();
   await arbitrageTracker.setTickers();
   arbitrageTracker.modelCombinedPricesData();
-  console.log(arbitrageTracker.combinedPricesData);
-  // console.log(binance.info.btc);
-  // console.log(wazirx.info.btc);
 }
 
 initialize();
-
-app.enable("trust proxy");
-
-app.use(function (request, response, next) {
-  if (!request.secure) {
-    return response.redirect("https://" + request.headers.host + request.url);
-  }
-  next();
-});
-
-app.use(
-  "/",
-  (req, res, next) => {
-    req.redisClient = redisClient;
-    next();
-  },
-  routes
-);
 
 module.exports = app;
