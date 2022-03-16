@@ -2,50 +2,75 @@ const { default: axios } = require("axios");
 
 class Binance {
   mainUrl = "https://www.binance.com";
-  transferrableToWazirxUrl = "/bapi/asset/v1/public/asset-service/partner/supported-assets?clientId=aEd4v9Cd90"
+  transferrableToWazirxUrl =
+    "/bapi/asset/v1/public/asset-service/partner/supported-assets?clientId=aEd4v9Cd90";
   exchangeInfoPath = "/api/v3/exchangeInfo";
   tickersPath = "/api/v3/bookTicker";
   depthPath = "/api/v3/depth";
-  getAllAsset = "/bapi/asset/v2/public/asset/asset/get-all-asset"
+  getAllAsset = "/bapi/asset/v2/public/asset/asset/get-all-asset";
 
-	mainQuote = "usdt";
+  mainQuote = "usdt";
   normalQuotes = new Set(["btc", "eth", "bnb", "xrp", "trx", "tusd", "usdc", "busd", "usdp", "eur", "gbp", "aud", "doge", "ust"]);
   invertedQuotes = new Set(["ngn", "rub", "try", "idrt", "uah", "bidr", "dai", "brl"]);
   ignoredQuotes = new Set(["vai"]);
 
-	transferrableCoins = null;
-	info = null;
+  transferrableCoins = null;
+  info = null;
 
+  async getTickers() {
+    const url = this.mainUrl + this.tickersPath;
+    console.log(url);
+    const { data: tickers } = await axios.get(url);
+    return tickers;
+  }
 
-	async buildInfo(){
+  async getMappedTickers() {
+    let tickers;
+    try {
+      tickers = await this.getTickers();
+      console.log(tickers);
+      let mappedTickers = {};
+      for (let pairData of tickers) {
+        mappedTickers[pairData["symbol"].toLowerCase()] = {
+          buy: parseFloat(pairData["askPrice"]),
+          sell: parseFloat(pairData["bidPrice"]),
+        };
+      }
+      return mappedTickers;
+    } catch (error) {
+      console.error("Error at getting binance mapped tickers");
+    }
+  }
+
+  async buildInfo() {
     console.time("transferrable");
-		this.transferrableCoins = await this.getTransferrableCoins();
+    this.transferrableCoins = await this.getTransferrableCoins();
     console.timeEnd("transferrable");
     console.time("allCoins");
     let namesInfo = await this.getAllAssetDetails();
     console.timeEnd("allCoins");
     console.time("exchangeInfo");
-		this.info = await this.getExchangeInfo();
+    this.info = await this.getExchangeInfo();
     console.timeEnd("exchangeInfo");
-    for(let base in this.info){
+    for (let base in this.info) {
       this.info[base].name = namesInfo[base].name;
       this.info[base].transferrable = this.transferrableCoins.has(base);
     }
-	}
+  }
 
-  async getAllAssetDetails(){
+  async getAllAssetDetails() {
     const url = this.mainUrl + this.getAllAsset;
     const { data: allAsset } = await axios.get(url);
     let mappedData = {};
-    for(let coin of allAsset.data){
+    for (let coin of allAsset.data) {
       mappedData[coin.assetCode.toLowerCase()] = {
-        name: coin.assetName
-      }
+        name: coin.assetName,
+      };
     }
     return mappedData;
   }
 
-  async updateInfo(){
+  async updateInfo() {
     await this.buildInfo();
   }
 
@@ -75,19 +100,19 @@ class Binance {
     return mappedData;
   }
 
-	async getTransferrableCoins(){
-		const url = this.mainUrl + this.transferrableToWazirxUrl;
-		const { data: transferrableCoins } = await axios.get(url);
-		return this.mapTransferrableCoins(transferrableCoins);
-	}
+  async getTransferrableCoins() {
+    const url = this.mainUrl + this.transferrableToWazirxUrl;
+    const { data: transferrableCoins } = await axios.get(url);
+    return this.mapTransferrableCoins(transferrableCoins);
+  }
 
-	mapTransferrableCoins(transferrableCoins){
-		let mappedData = new Set();
-		for(let coin of transferrableCoins.data){
+  mapTransferrableCoins(transferrableCoins) {
+    let mappedData = new Set();
+    for (let coin of transferrableCoins.data) {
       mappedData.add(coin.assetCode.toLowerCase());
-		}
-		return mappedData;
-	}
+    }
+    return mappedData;
+  }
 }
 
 module.exports = Binance;

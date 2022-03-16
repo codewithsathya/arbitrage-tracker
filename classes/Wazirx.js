@@ -14,33 +14,64 @@ class Link {
 }
 
 class Wazirx {
-  baseUrl = "https://x.wazirx.com";
+  mainUrl = "https://x.wazirx.com";
   links = {
     allCoinInfo: new Link("/api/v2/global_configs", "GET", null, false),
     networksInfo: new Link("/api/v3/networks", "GET", null, true),
     tickers: new Link("/api/v2/tickers", "GET", null, false),
-    transferrableCoinsToBinance: new Link("/api/v2/thirdparty/asset_transfer/currencies", "GET", null, true)
+    transferrableCoinsToBinance: new Link(
+      "/api/v2/thirdparty/asset_transfer/currencies",
+      "GET",
+      null,
+      true
+    ),
   };
 
   info = {};
 
   constructor(accessKey, secretKey, authKey) {
     if (!accessKey || !secretKey || !authKey) {
-      throw new Error("Missing accessKey, secretKey or authKey");
+      accessKey = process.env.WAZIRX_ACCESS_KEY;
+      secretKey = process.env.WAZIRX_SECRET_KEY;
+      authKey = process.env.WAZIRX_AUTH_KEY;
+    }
+    if(!accessKey || !secretKey || !authKey) {
+      throw new Error("Missing WAZIRX credentials");
     }
     this.accessKey = accessKey;
     this.secretKey = secretKey;
     this.authKey = authKey;
   }
 
+  async getTickers() {
+    return await this.sendRequest(this.links.tickers, {}, {});
+  }
+
+  async getMappedTickers() {
+    const tickers = await this.getTickers();
+    let mappedTickers = {};
+    for (let symbol of Object.keys(tickers)) {
+      mappedTickers[symbol] = {
+        buy: parseFloat(tickers[symbol].sell),
+        sell: parseFloat(tickers[symbol].buy),
+      };
+    }
+    return mappedTickers;
+  }
+
   buildInfo = async () => {
     const allCoinInfo = await this.sendRequest(this.links.allCoinInfo, {}, {});
-    const tickers = await this.sendRequest(this.links.tickers, {}, {});
-    let transferrableCoinsToBinance = await this.sendRequest(this.links.transferrableCoinsToBinance, {}, {thirdparty: "binance"});
-    transferrableCoinsToBinance = transferrableCoinsToBinance.allowedCurrencies.map(coin => coin.code);
+    const tickers = await this.getTickers();
+    let transferrableCoinsToBinance = await this.sendRequest(
+      this.links.transferrableCoinsToBinance,
+      {},
+      { thirdparty: "binance" }
+    );
+    transferrableCoinsToBinance =
+      transferrableCoinsToBinance.allowedCurrencies.map((coin) => coin.code);
     transferrableCoinsToBinance = new Set(transferrableCoinsToBinance);
-    for(let coin of allCoinInfo.currencies) {
-      if(coin.category !== "crypto") continue;
+    for (let coin of allCoinInfo.currencies) {
+      if (coin.category !== "crypto") continue;
       this.info[coin.type] = {
         name: coin.name,
         quotes: new Set(),
@@ -49,20 +80,21 @@ class Wazirx {
         withdrawable: coin.disableWithdrawal === undefined ? true : false,
         transferrable: transferrableCoinsToBinance.has(coin.type),
         withdrawFees: coin.withdrawFee,
-      }
+      };
     }
-    for(let pair of Object.values(tickers)) {
+    for (let pair of Object.values(tickers)) {
       this.info[pair.base_unit].quotes.add(pair.quote_unit);
     }
-    for(let coin of Object.keys(this.info)) {
-      if(this.info[coin].quotes.size === 0) {
+    for (let coin of Object.keys(this.info)) {
+      if (this.info[coin].quotes.size === 0) {
         delete this.info[coin];
       }
     }
   };
 
   sendRequest = async (linkDetails, data, queryData) => {
-    const url = this.baseUrl + linkDetails.path + "?" + utils.buildQueryString(queryData);
+    const url =
+      this.mainUrl + linkDetails.path + "?" + utils.buildQueryString(queryData);
     const config = {
       method: linkDetails.method,
       url,
@@ -73,14 +105,26 @@ class Wazirx {
     }
 
     const tonce = Date.now();
-    const signature = utils.getSignature(this.secretKey, this.getSignatureString(linkDetails, data, queryData, tonce, this.accessKey));
+    const signature = utils.getSignature(
+      this.secretKey,
+      this.getSignatureString(
+        linkDetails,
+        data,
+        queryData,
+        tonce,
+        this.accessKey
+      )
+    );
     config.headers = {
       "access-key": this.accessKey,
       signature,
       tonce,
       "content-type": linkDetails.contentType,
     };
-    config.data = linkDetails.contentType === "application/x-www-form-urlencoded" ? new URLSearchParams(data) : data;
+    config.data =
+      linkDetails.contentType === "application/x-www-form-urlencoded"
+        ? new URLSearchParams(data)
+        : data;
 
     let responseData;
     try {
@@ -93,7 +137,11 @@ class Wazirx {
   };
 
   getSignatureString = (linkDetails, data, queryData, tonce, accessKey) => {
-    let signatureString = `${linkDetails.method}|access-key=${accessKey}&tonce=${tonce}|${linkDetails.path}|${utils.buildQueryString(queryData)}`;
+    let signatureString = `${
+      linkDetails.method
+    }|access-key=${accessKey}&tonce=${tonce}|${
+      linkDetails.path
+    }|${utils.buildQueryString(queryData)}`;
     if (data && contentType === "application/x-www-form-urlencoded") {
       signatureString += this.buildQueryString(data);
     }

@@ -14,4 +14,5 @@ const httpsOptions = {
 https
   .createServer(httpsOptions, app)
   .listen(httpsPort, () => console.log(`Listening on port ${httpsPort}`));
+
 http.createServer(app).listen(httpPort);

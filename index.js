@@ -4,6 +4,7 @@ const RedisConnection = require("./db/RedisConnection");
 // const redisClient = new RedisConnection().redisClient;
 const Binance = require("./classes/Binance");
 const Wazirx = require("./classes/Wazirx");
+const ArbitrageTracker = require("./classes/ArbitrageTracker");
 
 const accessKey = process.env.WAZIRX_ACCESS_KEY;
 const secretKey = process.env.WAZIRX_SECRET_KEY;
@@ -11,6 +12,7 @@ const authKey = process.env.WAZIRX_AUTH_KEY;
 
 const wazirx = new Wazirx(accessKey, secretKey, authKey);
 const binance = new Binance();
+const arbitrageTracker = new ArbitrageTracker();
 
 async function initialize() {
   console.time("wazirx");
@@ -19,6 +21,8 @@ async function initialize() {
   console.time("binance");
   await binance.buildInfo();
   console.timeEnd("binance");
+  await arbitrageTracker.setTickers();
+  console.log(arbitrageTracker.binanceTickers, arbitrageTracker.wazirxTickers);
 }
 
 initialize();
