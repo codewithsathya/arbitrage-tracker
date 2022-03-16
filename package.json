@@ -4,7 +4,11 @@
   "description": "Arbitrage Tracker tracks the arbitrage trades that are currently present among exchanges.",
   "main": "index.js",
   "scripts": {
-    "start": "node bin/www"
+    "start": "node bin/www",
+    "production": "pm2 start bin/www --name arbitrage-tracker",
+    "stop": "pm2 stop arbitrage-tracker",
+    "restart": "pm2 restart arbitrage-tracker",
+    "dev": "nodemon bin/www"
   },
   "repository": {
     "type": "git",
