@@ -15,14 +15,11 @@ const binance = new Binance();
 const arbitrageTracker = new ArbitrageTracker();
 
 async function initialize() {
-  console.time("wazirx");
   await wazirx.buildInfo();
-  console.timeEnd("wazirx");
-  console.time("binance");
   await binance.buildInfo();
-  console.timeEnd("binance");
   await arbitrageTracker.setTickers();
-  console.log(arbitrageTracker.binanceTickers, arbitrageTracker.wazirxTickers);
+  console.log(binance.info.btc);
+  console.log(wazirx.info.btc);
 }
 
 initialize();

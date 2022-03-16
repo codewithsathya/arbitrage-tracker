@@ -1,11 +1,12 @@
-const { default: axios } = require("axios");
+const axios = require("axios");
 
 class Binance {
   mainUrl = "https://www.binance.com";
+  altUrl = "https://api.binance.com";
   transferrableToWazirxUrl =
     "/bapi/asset/v1/public/asset-service/partner/supported-assets?clientId=aEd4v9Cd90";
   exchangeInfoPath = "/api/v3/exchangeInfo";
-  tickersPath = "/api/v3/bookTicker";
+  tickersPath = "/api/v3/ticker/bookTicker";
   depthPath = "/api/v3/depth";
   getAllAsset = "/bapi/asset/v2/public/asset/asset/get-all-asset";
 
@@ -19,8 +20,13 @@ class Binance {
 
   async getTickers() {
     const url = this.mainUrl + this.tickersPath;
-    console.log(url);
-    const { data: tickers } = await axios.get(url);
+    let tickers;
+    try {
+      const {data} = await axios.get(url);
+      tickers = data;
+    } catch (error) {
+      console.error("Error at getting tickers in binance\n", error.message);
+    }
     return tickers;
   }
 
@@ -28,7 +34,6 @@ class Binance {
     let tickers;
     try {
       tickers = await this.getTickers();
-      console.log(tickers);
       let mappedTickers = {};
       for (let pairData of tickers) {
         mappedTickers[pairData["symbol"].toLowerCase()] = {
@@ -38,7 +43,7 @@ class Binance {
       }
       return mappedTickers;
     } catch (error) {
-      console.error("Error at getting binance mapped tickers");
+      console.error("Error at getting binance mapped tickers\n", error.message);
     }
   }
 
