@@ -48,15 +48,9 @@ class Binance {
   }
 
   async buildInfo() {
-    console.time("transferrable");
     this.transferrableCoins = await this.getTransferrableCoins();
-    console.timeEnd("transferrable");
-    console.time("allCoins");
     let namesInfo = await this.getAllAssetDetails();
-    console.timeEnd("allCoins");
-    console.time("exchangeInfo");
     this.info = await this.getExchangeInfo();
-    console.timeEnd("exchangeInfo");
     for (let base in this.info) {
       this.info[base].name = namesInfo[base].name;
       this.info[base].transferrable = this.transferrableCoins.has(base);

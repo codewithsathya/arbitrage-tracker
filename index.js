@@ -1,7 +1,7 @@
 const app = require("express")();
 const routes = require("./routes");
 const RedisConnection = require("./db/RedisConnection");
-// const redisClient = new RedisConnection().redisClient;
+const redisClient = new RedisConnection().redisClient;
 const Binance = require("./classes/Binance");
 const Wazirx = require("./classes/Wazirx");
 const ArbitrageTracker = require("./classes/ArbitrageTracker");
@@ -12,14 +12,16 @@ const authKey = process.env.WAZIRX_AUTH_KEY;
 
 const wazirx = new Wazirx(accessKey, secretKey, authKey);
 const binance = new Binance();
-const arbitrageTracker = new ArbitrageTracker();
+const arbitrageTracker = new ArbitrageTracker(wazirx, binance);
 
 async function initialize() {
   await wazirx.buildInfo();
   await binance.buildInfo();
   await arbitrageTracker.setTickers();
-  console.log(binance.info.btc);
-  console.log(wazirx.info.btc);
+  arbitrageTracker.modelCombinedPricesData();
+  console.log(arbitrageTracker.combinedPricesData);
+  // console.log(binance.info.btc);
+  // console.log(wazirx.info.btc);
 }
 
 initialize();
@@ -36,7 +38,7 @@ app.use(function (request, response, next) {
 app.use(
   "/",
   (req, res, next) => {
-    // req.redisClient = redisClient;
+    req.redisClient = redisClient;
     next();
   },
   routes
