@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 router.get("/", async (req, res) => {
-	const { redisClient } = req;
+	const { redisClient } = req.app;
 	let count = await redisClient.get("count")
 	if(count == null){
 		await redisClient.set("count", 1);
