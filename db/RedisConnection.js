@@ -1,3 +1,4 @@
+const redis = require("redis");
 class RedisConnection {
   status = "not connected";
   constructor(
@@ -5,8 +6,12 @@ class RedisConnection {
     port = process.env.REDIS_PORT,
     password = process.env.REDIS_PASSWORD
   ) {
-    let url = `redis://${host}:${port}`;
-    this.redisClient = require("redis").createClient({ url, password });
+    if (process.env.NODE_ENV === "production") {
+      this.redisClient = redis.createClient();
+    } else {
+      let url = `redis://${host}:${port}`;
+      this.redisClient = redis.createClient({ url, password });
+    }
     this.establishConnection();
   }
 
