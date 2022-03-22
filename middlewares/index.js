@@ -1,6 +1,5 @@
-function redisMiddleware(req, res, next, redisClient){
-	req.app = {}
-	req.app.redisClient = redisClient;
+function redisMiddleware(req, res, next, data){
+	req.app = data
   next();
 }
 

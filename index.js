@@ -9,13 +9,15 @@ const arbitrageTracker = new (require("./classes/ArbitrageTracker"))(wazirx, bin
 
 app.enable("trust proxy");
 app.use(httpsRedirect);
-app.use("/", (req, res, next) => redisMiddleware(req, res, next, redisClient), routes);
+app.use("/", (req, res, next) => redisMiddleware(req, res, next, {redisClient, combinedPricesData: arbitrageTracker.combinedPricesData}), routes);
 
 async function initialize() {
+  await redisClient.json.set("data", ".", {combinedPricesData: "Initializing..."});
   await wazirx.buildInfo();
   await binance.buildInfo();
   await arbitrageTracker.setTickers();
   arbitrageTracker.modelCombinedPricesData();
+  await redisClient.json.set("data", ".", { combinedPricesData: arbitrageTracker.combinedPricesData });
 }
 
 initialize();
