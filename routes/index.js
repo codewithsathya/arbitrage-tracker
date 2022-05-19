@@ -11,7 +11,6 @@ router.get("/", async (req, res) => {
 });
 
 router.get("/count", async (req, res) => {
-	console.log(req);
 	const { redisClient } = req.app;
 	let count = await redisClient.get("count")
 	if(count == null){

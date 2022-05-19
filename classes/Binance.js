@@ -3,26 +3,53 @@ const axios = require("axios");
 class Binance {
   mainUrl = "https://www.binance.com";
   altUrl = "https://api.binance.com";
-  transferrableToWazirxUrl =
-    "/bapi/asset/v1/public/asset-service/partner/supported-assets?clientId=aEd4v9Cd90";
+  transferrableToWazirxUrl = "/bapi/asset/v1/public/asset-service/partner/supported-assets?clientId=aEd4v9Cd90";
   exchangeInfoPath = "/api/v3/exchangeInfo";
   tickersPath = "/api/v3/ticker/bookTicker";
   depthPath = "/api/v3/depth";
   getAllAsset = "/bapi/asset/v2/public/asset/asset/get-all-asset";
 
   mainQuote = "usdt";
-  normalQuotes = new Set(["btc", "eth", "bnb", "xrp", "trx", "tusd", "usdc", "busd", "usdp", "eur", "gbp", "aud", "doge", "ust"]);
+  normalQuotes = new Set(["btc", "eth", "bnb", "xrp", "trx", "tusd", "usdc", "busd", "usdp", "eur", "gbp", "aud", "doge"]);
   invertedQuotes = new Set(["ngn", "rub", "try", "idrt", "uah", "bidr", "dai", "brl"]);
-  ignoredQuotes = new Set(["vai"]);
+  ignoredQuotes = new Set(["vai", "ust"]);
 
   transferrableCoins = null;
   info = null;
+
+  async getQuotePrices(mainQuote = "usdt", tickers) {
+    if (!tickers) {
+      try {
+        tickers = await this.getMappedTickers();
+      } catch (error) {
+        console.log("Error at getting tickers in binance\n", error.message);
+      }
+    }
+    let quotePrices = {};
+    for (let quote of this.normalQuotes) {
+      quotePrices[quote] = {
+        buy: tickers[quote + mainQuote].buy,
+        sell: tickers[quote + mainQuote].sell,
+      };
+    }
+    for (let quote of this.invertedQuotes) {
+      quotePrices[quote] = {
+        buy: 1 / tickers[mainQuote + quote].sell,
+        sell: 1 / tickers[mainQuote + quote].buy,
+      };
+    }
+    quotePrices["usdt"] = {
+      buy: 1,
+      sell: 1,
+    };
+    return quotePrices;
+  }
 
   async getTickers() {
     const url = this.mainUrl + this.tickersPath;
     let tickers;
     try {
-      const {data} = await axios.get(url);
+      const { data } = await axios.get(url);
       tickers = data;
     } catch (error) {
       console.error("Error at getting tickers in binance\n", error.message);

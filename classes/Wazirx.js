@@ -1,7 +1,5 @@
 const http = require("../services/httpService");
 const crypto = require("crypto");
-const { contentType } = require("express/lib/response");
-const { contentDisposition } = require("express/lib/utils");
 
 class Link {
   constructor(path, method, contentType, isAuthenticated, queryData) {
@@ -27,6 +25,10 @@ class Wazirx {
     ),
   };
 
+  mainQuote = "usdt";
+  normalQuotes = ["btc", "wrx"];
+  invertedQuotes = ["inr"];
+
   info = {};
 
   constructor(accessKey, secretKey, authKey) {
@@ -35,12 +37,40 @@ class Wazirx {
       secretKey = process.env.WAZIRX_SECRET_KEY;
       authKey = process.env.WAZIRX_AUTH_KEY;
     }
-    if(!accessKey || !secretKey || !authKey) {
+    if (!accessKey || !secretKey || !authKey) {
       throw new Error("Missing WAZIRX credentials");
     }
     this.accessKey = accessKey;
     this.secretKey = secretKey;
     this.authKey = authKey;
+  }
+
+  async getQuotePrices(mainQuote = "usdt", tickers) {
+    if (!tickers) {
+      try {
+        tickers = await this.getMappedTickers();
+      } catch (error) {
+        console.log("Error at getting tickers in wazirx\n", error.message);
+      }
+    }
+    let quotePrices = {};
+    for (let quote of this.normalQuotes) {
+      quotePrices[quote] = {
+        buy: tickers[quote + mainQuote].buy,
+        sell: tickers[quote + mainQuote].sell,
+      };
+    }
+    for (let quote of this.invertedQuotes) {
+      quotePrices[quote] = {
+        buy: 1 / tickers[mainQuote + quote].sell,
+        sell: 1 / tickers[mainQuote + quote].buy,
+      };
+    }
+    quotePrices["usdt"] = {
+      buy: 1,
+      sell: 1,
+    };
+    return quotePrices;
   }
 
   async getTickers() {
@@ -142,7 +172,10 @@ class Wazirx {
     }|access-key=${accessKey}&tonce=${tonce}|${
       linkDetails.path
     }|${utils.buildQueryString(queryData)}`;
-    if (data && contentType === "application/x-www-form-urlencoded") {
+    if (
+      data &&
+      linkDetails.contentType === "application/x-www-form-urlencoded"
+    ) {
       signatureString += this.buildQueryString(data);
     }
     return signatureString;
@@ -168,5 +201,8 @@ const utils = {
     return utils.sortQueryString(queryString.slice(0, -1));
   },
 };
+
+let wazirx = new Wazirx("aksdjkf", "aksjdkf", "skdjfksjkd");
+wazirx.getQuotePrices();
 
 module.exports = Wazirx;
