@@ -18,10 +18,9 @@ async function initialize() {
 }
 
 async function update(){
-  console.time("updateCombinedPricesData");
   await arbitrageTracker.updateCombinedPricesData();
-  await redisClient.json.set("data", ".", { combinedPricesData: arbitrageTracker.combinedPricesData, binance: arbitrageTracker.binance, wazirx: arbitrageTracker.wazirx });
-  console.timeEnd("updateCombinedPricesData");
+  await redisClient.json.set("data", ".", { combinedPricesData: arbitrageTracker.combinedPricesData, binance: arbitrageTracker.binance, wazirx: arbitrageTracker.wazirx, arbitrageData: arbitrageTracker.arbitrageData });
+  console.log("Updated");
 }
 
 async function start(){

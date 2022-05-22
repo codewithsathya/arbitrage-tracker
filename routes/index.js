@@ -10,6 +10,15 @@ router.get("/", async (req, res) => {
 	res.send(data);
 });
 
+router.get("/rotations", async (req, res) => {
+	const {redisClient} = req.app;
+	const key = "data";
+	let data = await redisClient.json.get(key, {
+		path: ".arbitrageData"
+	});
+	res.send(data);
+})
+
 router.get("/count", async (req, res) => {
 	const { redisClient } = req.app;
 	let count = await redisClient.get("count")

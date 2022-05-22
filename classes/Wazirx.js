@@ -23,6 +23,7 @@ class Wazirx {
       null,
       true
     ),
+    depth: new Link("/api/v2/depth", "GET", null, false),
   };
 
   mainQuote = "usdt";
@@ -87,6 +88,10 @@ class Wazirx {
       };
     }
     return mappedTickers;
+  }
+
+  async getDepth(market, limit = 10){
+    return await this.sendRequest(this.links.depth, {}, {market, limit});
   }
 
   buildInfo = async () => {
